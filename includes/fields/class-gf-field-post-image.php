@@ -89,23 +89,29 @@ class GF_Field_Post_Image extends GF_Field_Fileupload {
 		$form_id = $form['id'];
 		$url     = $this->get_single_file_value( $form_id, $input_name );
 
-		if ( ! empty( $url ) && GFCommon::is_valid_url( $url ) ) {
-			$image_title       = isset( $_POST["{$input_name}_1"] ) ? wp_strip_all_tags( $_POST["{$input_name}_1"] ) : '';
-			$image_caption     = isset( $_POST["{$input_name}_4"] ) ? wp_strip_all_tags( $_POST["{$input_name}_4"] ) : '';
-			$image_description = isset( $_POST["{$input_name}_7"] ) ? wp_strip_all_tags( $_POST["{$input_name}_7"] ) : '';
-
-			return $url . '|:|' . $image_title . '|:|' . $image_caption . '|:|' . $image_description;
+		if ( empty( $url ) ) {
+			return '';
 		}
 
-		return '';
+		if ( ! GFCommon::is_valid_url( $url ) ) {
+			GFCommon::log_debug( __METHOD__ . '(): aborting; File URL invalid.' );
+
+			return '';
+		}
+
+		$image_title       = isset( $_POST["{$input_name}_1"] ) ? wp_strip_all_tags( $_POST["{$input_name}_1"] ) : '';
+		$image_caption     = isset( $_POST["{$input_name}_4"] ) ? wp_strip_all_tags( $_POST["{$input_name}_4"] ) : '';
+		$image_description = isset( $_POST["{$input_name}_7"] ) ? wp_strip_all_tags( $_POST["{$input_name}_7"] ) : '';
+
+		return $url . '|:|' . $image_title . '|:|' . $image_caption . '|:|' . $image_description;
 	}
 
 	public function get_value_entry_list( $value, $entry, $field_id, $columns, $form ) {
 		list( $url, $title, $caption, $description ) = rgexplode( '|:|', $value, 4 );
 		if ( ! empty( $url ) ) {
-			//displaying thumbnail (if file is an image) or an icon based on the extension
+			// displaying thumbnail (if file is an image) or an icon based on the extension.
 			$thumb = GFEntryList::get_icon_url( $url );
-			$value = "<a href='" . esc_attr( $url ) . "' target='_blank' title='" . __( 'Click to view', 'gravityforms' ) . "'><img src='$thumb'/></a>";
+			$value = "<a href='" . esc_attr( $url ) . "' target='_blank' aria-label='" . esc_attr__( 'View the image', 'gravityforms' ) . "'><img src='$thumb' alt='' /></a>";
 		}
 		return $value;
 	}
@@ -129,7 +135,7 @@ class GF_Field_Post_Image extends GF_Field_Fileupload {
 					break;
 
 				default :
-					$value = "<a href='$url' target='_blank' title='" . __( 'Click to view', 'gravityforms' ) . "'><img src='$url' width='100' /></a>";
+					$value = "<a href='$url' target='_blank' aria-label='" . esc_attr__( 'View the image', 'gravityforms' ) . "'><img src='$url' width='100' alt='' /></a>";
 					$value .= ! empty( $title ) ? "<div>Title: $title</div>" : '';
 					$value .= ! empty( $caption ) ? "<div>Caption: $caption</div>" : '';
 					$value .= ! empty( $description ) ? "<div>Description: $description</div>" : '';
