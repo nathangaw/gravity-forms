@@ -245,14 +245,16 @@ class GFAPI {
 		}
 
 		if ( isset( $form['confirmations'] ) && is_array( $form['confirmations'] ) ) {
-			$result = GFFormsModel::update_form_meta( $form_id, $form['confirmations'], 'confirmations' );
+			$confirmations = self::set_property_as_key( $form['confirmations'], 'id' );
+			$result        = GFFormsModel::update_form_meta( $form_id, $confirmations, 'confirmations' );
 			if ( false === $result ) {
 				return new WP_Error( 'error_updating_confirmations', __( 'Error updating form confirmations', 'gravityforms' ), $wpdb->last_error );
 			}
 		}
 
 		if ( isset( $form['notifications'] ) && is_array( $form['notifications'] ) ) {
-			$result = GFFormsModel::update_form_meta( $form_id, $form['notifications'], 'notifications' );
+			$notifications = self::set_property_as_key( $form['notifications'], 'id' );
+			$result        = GFFormsModel::update_form_meta( $form_id, $notifications, 'notifications' );
 			if ( false === $result ) {
 				return new WP_Error( 'error_updating_notifications', __( 'Error updating form notifications', 'gravityforms' ), $wpdb->last_error );
 			}
@@ -299,9 +301,9 @@ class GFAPI {
 	 * @uses GFFormsModel::get_form_table_name()
 	 * @uses GFFormsModel::get_form_db_columns()
 	 *
-	 * @param array $form_ids     The IDs of the forms to update.
-	 * @param array $property_key The name of the column in the database e.g. is_trash, is_active, title.
-	 * @param array $value        The new value.
+	 * @param array  $form_ids     The IDs of the forms to update.
+	 * @param string $property_key The name of the column in the database e.g. is_trash, is_active, title.
+	 * @param mixed  $value        The new value.
 	 *
 	 * @return mixed Either a WP_Error instance or the result of the query
 	 */

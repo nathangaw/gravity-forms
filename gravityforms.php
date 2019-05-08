@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms
 Plugin URI: https://www.gravityforms.com
 Description: Easily create web forms and manage form entries within the WordPress admin.
-Version: 2.4.6.15
+Version: 2.4.9
 Author: rocketgenius
 Author URI: https://www.rocketgenius.com
 License: GPL-2.0+
@@ -215,7 +215,7 @@ class GFForms {
 	 *
 	 * @var string $version The version number.
 	 */
-	public static $version = '2.4.6.15';
+	public static $version = '2.4.9';
 
 	/**
 	 * Handles background upgrade tasks.
@@ -2226,6 +2226,8 @@ class GFForms {
 			'wp-backbone'
 		), $version, true );
 		wp_register_script( 'gform_system_report_clipboard', $base_url . '/includes/system-status/js/clipboard.min.js', array( 'jquery' ), $version, true );
+		wp_register_script( 'gform_preview', $base_url . "/js/preview{$min}.js", array( 'jquery' ), $version, true );
+
 
 		wp_register_style( 'gform_admin', $base_url . "/css/admin{$min}.css", array(), $version );
 		wp_register_style( 'gform_chosen', $base_url . "/css/chosen{$min}.css", array(), $version );
@@ -3419,18 +3421,30 @@ class GFForms {
 		$form  = GFAPI::get_form( $entry['form_id'] );
 
 		switch ( $status ) {
-			case 'unspam' :
+			case 'unspam':
 				GFFormsModel::update_entry_property( $lead_id, 'status', 'active' );
 				break;
 
-			case 'delete' :
+			case 'restore':
 				if ( GFCommon::current_user_can_any( 'gravityforms_delete_entries' ) ) {
-					RGFormsModel::delete_entry( $lead_id );
+					GFFormsModel::update_entry_property( $lead_id, 'status', 'active' );
+				}
+				break;
+
+			case 'delete':
+				if ( GFCommon::current_user_can_any( 'gravityforms_delete_entries' ) ) {
+					GFFormsModel::delete_entry( $lead_id );
+				}
+				break;
+
+			case 'trash':
+				if ( GFCommon::current_user_can_any( 'gravityforms_delete_entries' ) ) {
+					GFFormsModel::update_entry_property( $lead_id, 'status', 'trash' );
 				}
 				break;
 
 			default :
-				RGFormsModel::update_entry_property( $lead_id, 'status', $status );
+				GFFormsModel::update_entry_property( $lead_id, 'status', $status );
 				break;
 		}
 		require_once( 'entry_list.php' );
@@ -4334,7 +4348,7 @@ class GFForms {
 			$sub_menu_items[] = array(
 				'url'          => admin_url( "admin.php?page=gf_edit_forms&view=settings&subview={$tab['name']}&id={$form_id}" ),
 				'label'        => $tab['label'],
-				'capabilities' => array( 'gravityforms_edit_forms' )
+				'capabilities' => ( isset( $tab['capabilities'] ) ) ? $tab['capabilities'] : array( 'gravityforms_edit_forms' ),
 			);
 
 		}
